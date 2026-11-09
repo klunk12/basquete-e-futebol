@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Score and Fouls - Multi-Sport</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --main-timer-color: #ff4757;
+            --shot-clock-color: #ffa502;
+            --green-color: #2ed573;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin: 0 0 15px 0;
+            font-size: 2.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+
+        /* TELA DE SELEÇÃO INICIAL */
+        .modal-selection {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .modal-selection h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .sports-options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .sport-btn {
+            background-color: var(--card-bg);
+            color: white;
+            border: 2px solid #444;
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 200px;
+        }
+
+        .sport-btn:hover {
+            border-color: var(--main-timer-color);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
+        }
+
+        /* CONTEÚDO PRINCIPAL DO PLACAR */
+        .app-content {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Painel de Tempos */
+        .time-panel {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .timer-box {
+            background: var(--card-bg);
+            padding: 15px 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            text-align: center;
+            flex: 1;
+            min-width: 250px;
+            border: 2px solid #333;
+        }
+
+        .timer-box.main { border-color: var(--main-timer-color); }
+        .timer-box.shot { border-color: var(--shot-clock-color); }
+
+        .timer-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: #aaa;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .time-display {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        #mainTimer { font-size: 4rem; color: var(--main-timer-color); }
+        #shotTimer { font-size: 4rem; color: var(--shot-clock-color); }
+
+        .btn-group-timer {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-timer {
+            background-color: #3a3a3a;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-timer:hover { background-color: #555; }
+        .btn-start { background-color: var(--green-color); color: #000; }
+        .btn-start:hover { background-color: #26b862; }
+        .btn-pause { background-color: #d1d8e0; color: #000; }
+        .btn-pause:hover { background-color: #a5b1c2; }
+
+        /* Placar Principal (Cards dos Times) */
+        .scoreboard {
+            display: flex;
+            gap: 25px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .team-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            width: 320px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            border: 1px solid #2a2a2a;
+        }
+
+        .team-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 8px;
+            outline: none;
+            text-transform: uppercase;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: #888;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .score-display {
+            font-size: 5.5rem;
+            font-weight: bold;
+            margin: 0;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .fouls-display {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 0;
+            color: #ff4757;
+        }
+
+        .btn-score-group {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 15px;
+            min-height: 40px;
+        }
+
+        .score-btn {
+            border: none;
+            padding: 8px 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #333;
+            color: #fff;
+        }
+        .score-btn:hover { background-color: #444; }
+        .score-btn.minus { color: #888; }
+
+        .btn-foul-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .foul-btn {
+            border: none;
+            padding: 6px 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #333;
+            color: #fff;
+        }
+        .foul-btn:hover { background-color: #444; }
+
+        /* Controles de Rodapé */
+        .bottom-controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-bottom {
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-reset-all { background-color: #c1313e; }
+        .btn-reset-all:hover { background-color: #ff4757; }
+        .btn-change-sport { background-color: #4b4b4b; }
+        .btn-change-sport:hover { background-color: #666; }
+    </style>
+</head>
+<body>
+
+    <!-- MENU INICIAL COBERTURA COMPLETA -->
+    <div id="selectionModal" class="modal-selection">
+        <h2>Selecione a Modalidade do Jogo</h2>
+        <div class="sports-options">
+            <button class="sport-btn" onclick="initApp('basketball')">🏀 BASQUETE</button>
+            <button class="sport-btn" onclick="initApp('football')">⚽ FUTEBOL</button>
+        </div>
+    </div>
+
+    <!-- TELA DA PARTIDA ATIVA -->
+    <div id="appContent" class="app-content">
+        <h1 id="appTitle">Score and Fouls</h1>
+
+        <!-- PAINEL DOS CRONÔMETROS -->
+        <div class="time-panel">
+            <!-- Tempo Geral -->
+            <div class="timer-box main">
+                <div class="timer-label" id="timerLabel">Tempo de Jogo</div>
+                <div class="time-display" id="mainTimer">00:00</div>
+                <div class="btn-group-timer">
+                    <button class="btn-timer btn-start" onclick="startAllTimers()">Iniciar</button>
+                    <button class="btn-timer btn-pause" onclick="pauseAllTimers()">Pausar</button>
+                    <button class="btn-timer" onclick="resetMainTimer()">Reset Tempo</button>
+                </div>
+            </div>
+
+            <!-- Posse de Bola (Exclusivo Basquete) -->
+            <div class="timer-box shot" id="shotClockBox">
+                <div class="timer-label">Posse de Bola</div>
+                <div class="time-display" id="shotTimer">24</div>
+                <div class="btn-group-timer">
+                    <button class="btn-timer" onclick="resetShotClock(24)">Reset 24s</button>
+                    <button class="btn-timer" onclick="resetShotClock(14)">Reset 14s</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PLACAR CENTRAL DOS TIMES -->
+        <div class="scoreboard">
+            
+            <!-- TIME VISITANTE (A) -->
+            <div class="team-card">
+                <div class="team-name" contenteditable="true">VISITANTE</div>
+                
+                <div class="section-title">Pontos</div>
+                <div class="score-display" id="scoreA">0</div>
+                <div class="btn-score-group" id="scoreGroupA"></div>
+
+                <div class="section-title">Faltas</div>
+                <div class="fouls-display" id="foulsA">0</div>
